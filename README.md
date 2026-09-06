@@ -33,6 +33,63 @@
 
 注：个别协议仅支持某些客户端
 
+---
+
+## 🧭 自定义出口代理（Socks / Http / Mixed）
+
+在原版基础上新增了「自定义出口代理」功能：你可以把搭建出来的所有协议的出口流量，统一走一个自定义的 **socks / http / mixed** 代理服务器（相当于“套一层上游代理”）。通过环境变量即可随时切换自定义代理、WARP 或直连三种出口。
+
+### 一、环境变量说明（运行主脚本/agsbx 前置设置）
+
+| 变量 | 说明 | 示例 |
+| ------ | ------ | ------ |
+| `proxy` | 完整代理地址（单串） | `socks://user:pass@1.2.3.4:1080`、`http://1.2.3.4:8080`、`mixed://1.2.3.4:8080` |
+| `proxy_type` | 代理类型（可单独用） | `socks` / `http` / `mixed` |
+| `proxy_ip` | 代理服务器 IP（可单独用） | `1.2.3.4` |
+| `proxy_port` | 代理服务器端口（可单独用） | `1080` |
+| `proxy_user` | 代理账号（可选） | `user` |
+| `proxy_pass` | 代理密码（可选） | `pass` |
+| `outmode` | 出口模式选择 | `custom`（用自定义代理）/ `warp`（用warp出口）/ `direct`（VPS本地IP直连） |
+| `proxy_enable` | 关闭自定义代理 | `0` / `no` / `off` / `false` |
+
+> `proxy` 与分项变量（`proxy_type/ip/port/user/pass`）两者都支持，可混用；分项变量优先级更高。
+> **默认出口 = VPS 本地 IP 直连**。只有主动设置才会切换出口：填了代理参数＝用自定义代理；设置 `warp`（如 `warp=s`）或 `outmode=warp`＝用 WARP；`outmode=direct`＝强制直连。
+> 说明：本 fork 把默认出口从“全 WARP”改为了“VPS 本地 IP 直连”，需要 WARP 时请显式指定。
+
+### 二、使用示例
+
+```bash
+# 1) 首次安装：socks 代理出口（带账号密码）
+proxy=socks://user:pass@1.2.3.4:1080 outmode=custom vlpt=443 vmp=80 \
+  bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/argosbx/main/argosbx.sh)
+
+# 2) 改用 http 代理出口
+proxy=http://1.2.3.4:8080 outmode=custom vlpt=443 agsbx rep
+
+# 3) 分项变量方式
+proxy_type=socks proxy_ip=1.2.3.4 proxy_port=1080 proxy_user=u proxy_pass=p outmode=custom agsbx rep
+
+# 4) 切回 warp 出口 / 强制直连
+outmode=warp   agsbx rep
+outmode=direct agsbx rep
+
+# 5) 关闭自定义代理
+proxy=off      agsbx rep
+```
+
+### 三、`agsbx cp` 便捷子命令
+
+```bash
+agsbx cp                       # 查看当前出口代理设置
+agsbx cp proxy=socks://...     # 保存新的出口设置（之后 rep 生效）
+agsbx cp proxy=off             # 关闭自定义代理
+```
+
+保存后执行 `agsbx rep` 即可让修改生效（会复用上次安装的协议与端口，不必重复传协议变量）。
+
+> 说明：自定义代理出口会覆盖 WARP/direct 出口（三者通过 `outmode` 切换，互不冲突）。
+> Mixed 类型在客户端侧统一按 SOCKS5 出口连接，兼容性最好。
+
 
 ------------------------------------------------------------------
 

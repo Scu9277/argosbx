@@ -17,7 +17,7 @@ export LANG=en_US.UTF-8
 [ -z "${xcpt+x}" ] || xcp=yes
 if find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null | grep -Eq 'agsbx/(s|x)' || pgrep -f 'agsbx/(s|x)' >/dev/null 2>&1; then
 if [ "$1" = "rep" ]; then
-[ "$xcp" = yes ] || [ "$xup" = yes ] || [ "$nvp" = yes ] || [ "$vwp" = yes ] || [ "$sop" = yes ] || [ "$vxp" = yes ] || [ "$ssp" = yes ] || [ "$vlp" = yes ] || [ "$vmp" = yes ] || [ "$hyp" = yes ] || [ "$tup" = yes ] || [ "$xhp" = yes ] || [ "$anp" = yes ] || [ "$arp" = yes ] || { echo "提示：rep重置协议时，请在脚本前至少设置一个协议变量哦，再见！💣"; exit; }
+[ "$xcp" = yes ] || [ "$xup" = yes ] || [ "$nvp" = yes ] || [ "$vwp" = yes ] || [ "$sop" = yes ] || [ "$vxp" = yes ] || [ "$ssp" = yes ] || [ "$vlp" = yes ] || [ "$vmp" = yes ] || [ "$hyp" = yes ] || [ "$tup" = yes ] || [ "$xhp" = yes ] || [ "$anp" = yes ] || [ "$arp" = yes ] || [ -n "$proxy" ] || [ -n "$proxy_type" ] || [ -n "$proxy_ip" ] || [ -n "$proxy_port" ] || [ -n "$proxy_user" ] || [ -n "$proxy_pass" ] || [ -n "$outmode" ] || [ -s "$HOME/agsbx/cproxy.conf" ] || { echo "提示：rep重置协议时，请在脚本前至少设置一个协议变量或出口代理变量哦，再见！💣"; exit; }
 fi
 else
 [ "$1" = "del" ] || [ "$xcp" = yes ] || [ "$xup" = yes ] || [ "$nvp" = yes ] || [ "$vwp" = yes ] || [ "$sop" = yes ] || [ "$vxp" = yes ] || [ "$ssp" = yes ] || [ "$vlp" = yes ] || [ "$vmp" = yes ] || [ "$hyp" = yes ] || [ "$tup" = yes ] || [ "$xhp" = yes ] || [ "$anp" = yes ] || [ "$arp" = yes ] || { echo "提示：未安装argosbx脚本，请在脚本前至少设置一个协议变量哦，再见！💣"; exit; }
@@ -46,6 +46,14 @@ export ippz=${ippz:-''}
 export warp=${warp:-''}
 export name=${name:-''}
 export oap=${oap:-''}
+export proxy=${proxy:-''}
+export proxy_type=${proxy_type:-''}
+export proxy_ip=${proxy_ip:-''}
+export proxy_port=${proxy_port:-''}
+export proxy_user=${proxy_user:-''}
+export proxy_pass=${proxy_pass:-''}
+export proxy_enable=${proxy_enable:-''}
+export outmode=${outmode:-''}
 v46url="https://icanhazip.com"
 agsbxurl="https://raw.githubusercontent.com/yonggekkk/argosbx/main/argosbx.sh"
 showmode(){
@@ -58,6 +66,14 @@ echo "更新Xray或Singbox内核命令：agsbx upx或ups 【或者】 主脚本 
 echo "重启脚本命令：agsbx res 【或者】 主脚本 res"
 echo "卸载脚本命令：agsbx del 【或者】 主脚本 del"
 echo "双栈VPS显示IPv4/IPv6节点配置命令：ippz=4或6 agsbx list 【或者】 ippz=4或6 主脚本 list"
+echo "自定义出口代理(Socks/Http/Mixed)查看/设置命令：agsbx cp 【或者】 主脚本 cp"
+echo "  示例：proxy=socks://user:pass@ip:port outmode=custom agsbx cp   # 启用socks代理为出口"
+echo "        proxy=http://ip:port        outmode=custom agsbx cp   # 启用http代理为出口"
+echo "        proxy=mixed://ip:port       outmode=custom agsbx cp   # 启用混合代理为出口"
+echo "        warp=s 或 outmode=warp      agsbx cp   # 使用warp出口"
+echo "        outmode=direct 或不填出口变量      # 默认VPS本地IP直连"
+echo "        proxy=off                   agsbx cp   # 关闭自定义代理"
+echo "说明：默认出口=VPS本地IP直连；只有主动填代理或选warp才切换出口"
 echo "申请本地IP域名证书脚本：bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/acme-yg/main/acme.sh)"
 echo "---------------------------------------------------------"
 echo
@@ -162,6 +178,91 @@ case "$warp" in *x4*) xryx='ForceIPv4' ;; *x*) xryx='ForceIPv6v4' ;; *) xryx='Fo
 elif [ "$v4_ok" != true ] && [ "$v6_ok" = true ]; then
 case "$warp" in *s6*|x) sbyx='ipv6_only' ;; *) sbyx='prefer_ipv4' ;; esac
 case "$warp" in *x6*) xryx='ForceIPv6' ;; *x*) xryx='ForceIPv4v6' ;; *) xryx='ForceIPv6v4' ;; esac
+fi
+}
+customproxy(){
+# =============================================================
+# 出口选择：默认=VPS本地IP直连；只有主动选择才走 WARP 或自定义 Socks/Http/Mixed
+#   proxy        : socks://user:pass@ip:port 或 http://ip:port 或 mixed://ip:port
+#   proxy_type   : socks | http | mixed   proxy_ip / proxy_port / proxy_user / proxy_pass
+#   outmode      : custom(用自定义代理) | warp(用warp出口) | direct(直连)
+#                 (不设 outmode 时：给了代理=用代理；否则给了warp=用warp；否则=VPS本地IP直连)
+#   proxy_enable : 0|no|off|false 表示关闭自定义代理
+# =============================================================
+local have_env=no
+[ -n "$proxy" ]                && have_env=yes
+[ -n "$proxy_type" ]           && have_env=yes
+[ -n "$proxy_ip" ]             && have_env=yes
+[ -n "$proxy_port" ]           && have_env=yes
+[ -n "$proxy_user" ]           && have_env=yes
+[ -n "$proxy_pass" ]           && have_env=yes
+[ -n "$outmode" ]              && have_env=yes
+local want_off=no
+case "$proxy" in off|none|OFF|NONE) want_off=yes;; esac
+case "$proxy_enable" in 0|no|off|false|NO|OFF|FALSE) want_off=yes;; esac
+[ "$want_off" = yes ] && have_env=yes
+local pc_type="" pc_ip="" pc_port="" pc_user="" pc_pass=""
+if [ "$want_off" = yes ]; then
+# 明确关闭自定义代理：清空记录，进入默认直连/warp 判定
+rm -f "$HOME/agsbx/cproxy.conf"
+echo "已关闭自定义出口代理（按默认/所选出口判定）"
+elif [ "$have_env" = yes ]; then
+pc_type="$proxy_type"; pc_ip="$proxy_ip"; pc_port="$proxy_port"; pc_user="$proxy_user"; pc_pass="$proxy_pass"
+if [ -n "$proxy" ]; then
+local scheme="${proxy%%://*}"
+local rest="${proxy#*://}"
+[ -z "$pc_type" ] && pc_type="$scheme"
+if echo "$rest" | grep -q '@'; then
+local cred="${rest%%@*}"; rest="${rest#*@}"
+[ -z "$pc_user" ] && pc_user="${cred%%:*}"
+[ -z "$pc_pass" ] && pc_pass="${cred#*:}"
+fi
+if echo "$rest" | grep -q ']:'; then
+[ -z "$pc_ip" ] && pc_ip="${rest#\[}"; pc_ip="${pc_ip%%\]*}"
+[ -z "$pc_port" ] && pc_port="${rest##*:}"
+elif echo "$rest" | grep -q ':'; then
+[ -z "$pc_ip" ]   && pc_ip="${rest%%:*}"
+[ -z "$pc_port" ] && pc_port="${rest##*:}"
+else
+[ -z "$pc_ip" ] && pc_ip="$rest"
+fi
+fi
+fi
+case "$pc_type" in
+s|S|sock|socks|SOCKS|Socks)      pc_type=socks ;;
+h|H|http|HTTP|Http|https|HTTPS)  pc_type=http ;;
+m|M|mix|mixed|MIXED|Mixed)       pc_type=mixed ;;
+*) [ -n "$pc_ip$pc_port" ] && pc_type=socks || pc_type="" ;;
+esac
+local now_custom=no now_direct=no now_warp=no
+case "$outmode" in
+custom|Custom|CUSTOM) now_custom=yes ;;
+direct|Direct|DIRECT) now_direct=yes ;;
+warp|Warp|WARP)       now_warp=yes ;;
+*) # 自动判定：给了代理→自定义；否则给了warp→warp；否则=VPS本地IP直连
+if [ -n "$pc_ip" ] && [ -n "$pc_port" ]; then now_custom=yes
+elif [ -n "$warp" ]; then now_warp=yes
+else now_direct=yes; fi ;;
+esac
+copeable=no; cotype=""; copaddr=""; copport=""; copuser=""; coppass=""; coutmode="$outmode"
+if [ "$now_custom" = yes ] && [ -n "$pc_ip" ] && [ -n "$pc_port" ]; then
+copeable=yes; cotype="$pc_type"; copaddr="$pc_ip"; copport="$pc_port"; copuser="$pc_user"; coppass="$pc_pass"
+printf 'cotype=%s\ncopaddr=%s\ncopport=%s\ncopuser=%s\ncoppass=%s\ncoutmode=%s\n' "$cotype" "$copaddr" "$copport" "$copuser" "$coppass" "$outmode" > "$HOME/agsbx/cproxy.conf"
+else
+[ "$have_env" = yes ] && rm -f "$HOME/agsbx/cproxy.conf"
+fi
+if [ "$now_custom" = yes ] && [ -n "$copaddr$copport" ]; then
+s1outtag=custom-out; s2outtag=custom-out; x1outtag=custom-out; x2outtag=custom-out
+xip='"::/0", "0.0.0.0/0"'; sip='"::/0", "0.0.0.0/0"'
+echo; echo "=========启用自定义出口代理========="
+echo "出口类型：$cotype    出口代理：${copaddr}:${copport}"
+[ -n "$copuser" ] && echo "代理账号：$copuser"
+elif [ "$now_direct" = yes ]; then
+s1outtag=direct; s2outtag=direct; x1outtag=direct; x2outtag=direct
+xip='"::/0", "0.0.0.0/0"'; sip='"::/0", "0.0.0.0/0"'
+echo; echo "=========出口模式：direct 直连（VPS本地IP出站）========="
+else
+echo "出口模式：使用warp出口逻辑（已主动选择WARP）"
 fi
 }
 upxray(){
@@ -949,6 +1050,44 @@ fi
 }
 
 xrsbout(){
+# 构造自定义出口代理的 outbound JSON（如启用 custom-out）
+local cpk="${cotype:-socks}"
+case "$cotype" in mixed) cpk=socks ;; esac
+xco_extra=""
+sco_extra=""
+if [ "$copeable" = yes ] && [ -n "$copaddr" ] && [ -n "$copport" ]; then
+local cpuserjson=""
+[ -n "$copuser" ] && cpuserjson=",\"users\":[{\"user\":\"${copuser}\",\"pass\":\"${coppass}\"}]"
+xco_extra=",
+    {
+      \"protocol\": \"${cpk}\",
+      \"tag\": \"custom-out\",
+      \"settings\": {
+        \"servers\": [
+          { \"address\": \"${copaddr}\", \"port\": ${copport}${cpuserjson} }
+        ]
+      }
+    }"
+if [ -n "$copuser" ]; then
+sco_extra=",
+    {
+      \"type\": \"${cpk}\",
+      \"tag\": \"custom-out\",
+      \"server\": \"${copaddr}\",
+      \"server_port\": ${copport},
+      \"username\": \"${copuser}\",
+      \"password\": \"${coppass}\"
+    }"
+else
+sco_extra=",
+    {
+      \"type\": \"${cpk}\",
+      \"tag\": \"custom-out\",
+      \"server\": \"${copaddr}\",
+      \"server_port\": ${copport}
+    }"
+fi
+fi
 if [ -e "$HOME/agsbx/xr.json" ]; then
 sed -i '${s/,\s*$//}' "$HOME/agsbx/xr.json"
 cat >> "$HOME/agsbx/xr.json" <<EOF
@@ -992,7 +1131,7 @@ cat >> "$HOME/agsbx/xr.json" <<EOF
        "proxySettings":{
        "tag":"x-warp-out"
      }
-}
+}${xco_extra}
   ],
   "routing": {
     "domainStrategy": "IPOnDemand",
@@ -1060,7 +1199,7 @@ cat >> "$HOME/agsbx/sb.json" <<EOF
     {
       "type": "direct",
       "tag": "direct"
-    }
+    }${sco_extra}
   ],
   "endpoints": [
     {
@@ -1151,6 +1290,7 @@ xrsbhy2
 xrsbvm
 xrsbso
 warpsx
+customproxy
 xrsbout
 tup="tuptargo"; anp="anptargo"; arp="arptargo"; ssp="ssptargo"; nvp="nvptargo"
 elif [ "$xhp" != yes ] && [ "$vlp" != yes ] && [ "$vxp" != yes ] && [ "$vwp" != yes ] && [ "$xup" != yes ] && [ "$xcp" != yes ]; then
@@ -1159,6 +1299,7 @@ xrsbhy2
 xrsbvm
 xrsbso
 warpsx
+customproxy
 xrsbout
 xhp="xhptargo"; vlp="vlptargo"; vxp="vxptargo"; vwp="vwptargo"; xup="xuptargo"; xcp="xcptargo"
 else
@@ -1168,6 +1309,7 @@ xrsbhy2
 xrsbvm
 xrsbso
 warpsx
+customproxy
 xrsbout
 fi
 if [ -n "$argo" ] && [ -n "$vmag" ]; then
@@ -2561,10 +2703,60 @@ exit
 elif [ "$1" = "rep" ]; then
 cleandel
 rm -rf "$HOME/agsbx"/{sb.json,xr.json,sbargoym.log,sbargotoken.log,argo.log,argoport.log,cdnym,name}
+if ! { [ "$xcp" = yes ] || [ "$xup" = yes ] || [ "$nvp" = yes ] || [ "$vwp" = yes ] || [ "$sop" = yes ] || [ "$vxp" = yes ] || [ "$ssp" = yes ] || [ "$vlp" = yes ] || [ "$vmp" = yes ] || [ "$hyp" = yes ] || [ "$tup" = yes ] || [ "$xhp" = yes ] || [ "$anp" = yes ] || [ "$arp" = yes ]; } && [ -s "$HOME/agsbx/protocols.conf" ]; then
+. "$HOME/agsbx/protocols.conf"
+echo "已从上次安装恢复协议变量……"
+fi
 echo "Argosbx重置协议完成，开始更新相关协议变量……" && sleep 2
 echo
 elif [ "$1" = "list" ]; then
 cip
+exit
+elif [ "$1" = "cp" ]; then
+# 自定义出口代理管理：查看当前设置 / 保存新设置 / 关闭
+if [ -n "$proxy" ] || [ -n "$proxy_type" ] || [ -n "$proxy_ip" ] || [ -n "$proxy_port" ] || [ -n "$proxy_user" ] || [ -n "$proxy_pass" ] || [ -n "$outmode" ]; then
+# 保存新的出口设置到配置文件（下次 rep/重建时生效）
+if [ -n "$proxy" ] || [ -n "$proxy_ip" ] || [ -n "$outmode" ] || [ -n "$proxy_port" ]; then
+echo "正在保存自定义出口设置……"
+if [ -n "$outmode" ]; then echo "出口模式：$outmode"; fi
+if [ -n "$proxy" ] || [ -n "$proxy_ip" ]; then echo "出口代理：${proxy_ip:-$(echo "$proxy" | sed -E 's#.*://##')}"; fi
+fi
+# 复用 customproxy() 的解析与保存逻辑
+customproxy
+if [ "$copeable" = yes ]; then
+echo "已记录自定义出口代理 (${cotype}://${copaddr}:${copport})"
+# 构造可复用的 rep 命令（rep 会自动复用上次协议）
+_cmd=""
+[ -n "$outmode" ] && _cmd="outmode=$outmode"
+[ -n "$copuser" ] && _cmd="$_cmd proxy=\"${cotype}://${copuser}:${coppass}@${copaddr}:${copport}\"" || _cmd="$_cmd proxy=\"${cotype}://${copaddr}:${copport}\""
+echo "要应用到已搭建的协议，请执行："
+echo "  ${_cmd} agsbx rep"
+echo "（或直接用上述变量 跑主脚本 rep）"
+else
+echo "已记录出口设置（未启用自定义代理）。执行 agsbx rep 即回到默认直连/所选warp。"
+fi
+else
+echo "=========自定义出口代理（记录/参考）========="
+if [ -s "$HOME/agsbx/cproxy.conf" ]; then
+echo "上次记录的自定义代理设置："
+cat "$HOME/agsbx/cproxy.conf"
+echo "----------------------------------"
+echo "提示：这是上次保存的代理记录，仅在你用相同变量重跑 rep 时才生效。"
+else
+echo "（没有历史自定义代理记录。当前未启用自定义代理，默认=VPS本地IP直连）"
+fi
+echo "----------------------------------"
+echo "出口选择规则：不设任何出口变量=VPS本地IP直连；选warp=走WARP；填代理=走自定义代理。"
+echo "用法示例："
+echo "  启用socks代理为出口：  proxy=socks://user:pass@1.2.3.4:1080 outmode=custom agsbx cp"
+echo "  启用http代理为出口：   proxy=http://1.2.3.4:8080      outmode=custom agsbx cp"
+echo "  启用混合代理为出口：   proxy=mixed://1.2.3.4:8080      outmode=custom agsbx cp"
+echo "  分项方式：             proxy_type=socks proxy_ip=1.2.3.4 proxy_port=1080 outmode=custom agsbx cp"
+echo "  改为warp出口：         warp=s 或 outmode=warp  agsbx rep"
+echo "  强制直连(VPS本地IP)：  outmode=direct agsbx rep  或 不做任何出口选择 agsbx rep"
+echo "  关闭自定义代理：       proxy=off      agsbx cp"
+echo "  （改/关后请执行 agsbx rep 重建生效）"
+fi
 exit
 elif [ "$1" = "upx" ]; then
 for P in /proc/[0-9]*; do [ -L "$P/exe" ] || continue; TARGET=$(readlink -f "$P/exe" 2>/dev/null) || continue; case "$TARGET" in *"/agsbx/x"*) kill "$(basename "$P")" 2>/dev/null ;; esac; done
@@ -2659,6 +2851,10 @@ else
 certificateHTA="$HOME/agsbx/cert.crt"
 keyHTA="$HOME/agsbx/private.key"
 echo "HY2/TUIC/Anytls/Xhttp-tls将使用自签证书的TLS"
+fi
+# 保存本次请求的协议变量，便于之后使用 rep/cp 仅改出口代理时复用协议
+if [ "$xcp" = yes ] || [ "$xup" = yes ] || [ "$nvp" = yes ] || [ "$vwp" = yes ] || [ "$sop" = yes ] || [ "$vxp" = yes ] || [ "$ssp" = yes ] || [ "$vlp" = yes ] || [ "$vmp" = yes ] || [ "$hyp" = yes ] || [ "$tup" = yes ] || [ "$xhp" = yes ] || [ "$anp" = yes ] || [ "$arp" = yes ] || [ -n "$warp" ]; then
+printf 'xcp=%s\nxup=%s\nnvp=%s\nvwp=%s\nsop=%s\nvxp=%s\nssp=%s\nvlp=%s\nvmp=%s\nhyp=%s\ntup=%s\nxhp=%s\nanp=%s\narp=%s\nwarp=%s\n' "${xcp:-no}" "${xup:-no}" "${nvp:-no}" "${vwp:-no}" "${sop:-no}" "${vxp:-no}" "${ssp:-no}" "${vlp:-no}" "${vmp:-no}" "${hyp:-no}" "${tup:-no}" "${xhp:-no}" "${anp:-no}" "${arp:-no}" "${warp:-no}" > "$HOME/agsbx/protocols.conf"
 fi
 ins
 if [ -n "$sub" ]; then
