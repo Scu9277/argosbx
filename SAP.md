@@ -16,11 +16,11 @@ SAP个人注册地址：https://www.sap.com/products/technology-platform/trial.h
 
 VPS服务器方式脚本地址：（再次进入快捷方式```bash sap.sh```）：
 
-```curl -sSL https://raw.githubusercontent.com/yonggekkk/argosbx/main/sap.sh -o sap.sh && chmod +x sap.sh && bash sap.sh```
+```curl -sSL https://raw.githubusercontent.com/Scu9277/argosbx/main/sap.sh -o sap.sh && chmod +x sap.sh && bash sap.sh```
 
 或者
 
-```wget -q https://raw.githubusercontent.com/yonggekkk/argosbx/main/sap.sh -O sap.sh && chmod +x sap.sh && bash sap.sh```
+```wget -q https://raw.githubusercontent.com/Scu9277/argosbx/main/sap.sh -O sap.sh && chmod +x sap.sh && bash sap.sh```
 
 ----------------------------------------- 
 
@@ -34,11 +34,11 @@ VPS服务器方式脚本地址：（再次进入快捷方式```bash sap.sh```）
 
 VPS服务器方式脚本地址：（再次进入快捷方式```bash saph.sh```）：
 
-```curl -sSL https://raw.githubusercontent.com/yonggekkk/argosbx/main/saph.sh -o saph.sh && chmod +x saph.sh && bash saph.sh```
+```curl -sSL https://raw.githubusercontent.com/Scu9277/argosbx/main/saph.sh -o saph.sh && chmod +x saph.sh && bash saph.sh```
 
 或者
 
-```wget -q https://raw.githubusercontent.com/yonggekkk/argosbx/main/saph.sh -O saph.sh && chmod +x saph.sh && bash saph.sh```
+```wget -q https://raw.githubusercontent.com/Scu9277/argosbx/main/saph.sh -O saph.sh && chmod +x saph.sh && bash saph.sh```
 
 ----------------------------------------- 
 
