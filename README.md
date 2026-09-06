@@ -146,30 +146,46 @@ agsbx cp proxy=off             # 关闭自定义代理
 
 ----------------------------------------------------------
 
-### 常见问题（出口代理 / 验证失败排查）
+### 四、安装后如何验证 & 常见问题
+
+**安装后验证：**
+- **查看节点/状态**：`agsbx list`，或 `agsbx`（终端下无参数）弹出菜单选 **1**。
+- **客户端导入**：用生成的**单协议分享链接**或**订阅链接**在客户端（V2rayN / Nekobox / Clash）导入，然后真实访问测试。
+- **确认出口IP**：连上节点后，访问 `https://icanhazip.com` 或 `https://ip.sb`，看显示的 IP 是否是你预期的（自定义代理出口 / WARP / VPS 本地）。
+- **订阅链接**（若启用 `sub=y`）：`http://<VPS_IP>:<subpt>/<subid>/clmi.yaml`（Clash）、`…/sbox.json`（Sing-box）、`…/jhsub.txt`（聚合）。注意 `subid`/`subpt` 是你在网页填的值。
+
+**常见问题：**
 
 **1. 出口代理启用时提示「验证失败，已中止」？**
 脚本用 `curl -x` 通过你填的代理访问一次网络来验证。失败说明**当前主机无法通过该代理上网**，请按序排查：
 - ① 代理地址/端口是否正确（`proxy_ip` / `proxy_port`）。
-- ② 代理账号密码是否正确（`proxy_user` / `proxy_pass`，注意特殊字符别被 shell 转义）。
-- ③ VPS 能否连到该代理（在 VPS 上 `nc -vz <代理IP> <端口>` 或 `curl -x socks5://… -m 5 https://www.gstatic.com/generate_204` 看是否通）。
+- ② 代理账号/密码是否正确（`proxy_user` / `proxy_pass`，特殊字符别被 shell 转义）。
+- ③ VPS 能否连到该代理（VPS 上 `nc -vz <代理IP> <端口>` 或 `curl -x socks5://… -m 5 https://www.gstatic.com/generate_204`）。
 - ④ 该代理自身能否上网（在代理机上验证）。
 
 **2. 确定代理没问题，但验证仍失败？**
-可能该代理屏蔽了测试域名。可以：
-- 加 `proxy_nocheck=1` 跳过验证（网页里勾选「跳过代理可用性验证」即可）。
-- 或改用别的测试域名后再运行。
+可能该代理屏蔽了测试域名。可加 `proxy_nocheck=1` 跳过验证（网页勾选「跳过代理可用性验证」），或换测试域名后重跑。
 
-**3. 代理验证通过但出口还是不对？**
-- 确认生成的命令里**包含了你需要的协议 + 出口变量**；`outmode=custom` 或填了代理参数＝走自定义代理。
-- 想换回 WARP：`outmode=warp agsbx rep`；想直连：`outmode=direct agsbx rep` 或不填任何出口变量。
+**3. 代理验证通过但出口仍不对？**
+- 确认命令里**包含协议 + 出口变量**：`outmode=custom` 或填了代理参数＝走自定义代理。
+- 切回 WARP：`outmode=warp agsbx rep`；直连：`outmode=direct agsbx rep`（或不填任何出口变量＝VPS 本地直连）。
 
-**4. 其它通用：**
-- 首次装完 `agsbx` 快捷方式需**重连 SSH** 才生效；未生效就用主脚本。
-- 修改/关闭出口后要 `agsbx rep` 重建生效；`agsbx cp` 只查看/记录。
+**4. 协议连不通 / 部分协议不通？**
+- 一次装多个协议端口是**随机的**：想固定就在网页给对应协议填端口。
+- 检查 **防火墙/安全组**是否放行了这些端口（部分 VPS 默认只放行少数端口）。
+- `hyjpt`（Hysteria2 端口跳跃）需要 **root + iptables**，且依赖内核 NAT；受限的 NAT 环境/容器可能无效。
+
+**5. `agsbx` 快捷方式没有交互菜单 / 不生效？**
+- 首次安装后 **重连 SSH** 才生效；旧版 `agsbx` 需按最新版**重跑一次安装**（`agsbx rep` 或主脚本）才有交互菜单。
+
+**6. 订阅链接和出口代理是什么关系？**
+- 订阅链接是**客户端连进 VPS 的入口**；出口代理是 **VPS 出网**的方向。两者独立，互不影响。
+
+**7. 修改/关闭设置后何时生效？**
+- `agsbx cp` 只查看/记录；真正的生效要 `agsbx rep`（或菜单里选应用）重建。
 - 合并上游更新用 `bash sync-upstream.sh`，不丢你的出口功能。
 
----------------------------------------------------------
+----------------------------------------------------------
 
 ### 交流平台 / 作者：**Duang x Scu**（邮箱 `shangkouyou@gmail.com`，仓库 `https://github.com/Scu9277/argosbx`）
 原作者甬哥：[甬哥博客](https://ygkkk.blogspot.com)、[甬哥YouTube](https://www.youtube.com/@ygkkk)、[甬哥TG群组](https://t.me/+jZHc6-A-1QQ5ZGVl)
