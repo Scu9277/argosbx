@@ -151,8 +151,8 @@ agsbx cp proxy=off             # 关闭自定义代理
 ![41440820a366deeb8109db5610313a1](https://github.com/user-attachments/assets/e5b1f2c0-bd2c-4b8f-8cda-034d3c8ef73f)
 
 ----------------------------------------------------------
-### 感谢你右上角的star🌟
-[![Stargazers over time](https://starchart.cc/yonggekkk/ArgoSB.svg)](https://starchart.cc/yonggekkk/ArgoSB)
+### 感谢你右上角的star🌟（欢迎给本 fork 点个 star）
+[![Stargazers over time](https://starchart.cc/Scu9277/argosbx.svg)](https://starchart.cc/Scu9277/argosbx)
 
 ----------------------------------------------------------
 ### 声明：所有代码来源于Github社区与ChatGPT的整合
