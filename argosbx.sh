@@ -58,6 +58,7 @@ export proxy_nocheck=${proxy_nocheck:-''}
 v46url="https://icanhazip.com"
 agsbxurl="https://raw.githubusercontent.com/Scu9277/argosbx/main/argosbx.sh"
 showmode(){
+echo "作者/Duang x Scu   邮箱/shangkouyou@gmail.com   项目/github.com/Scu9277/argosbx"
 echo "Argosbx脚本一键SSH命令生器在线网址：https://scu9277.github.io/argosbx/"
 echo "主脚本：bash <(curl -Ls https://raw.githubusercontent.com/Scu9277/argosbx/main/argosbx.sh) 或 bash <(wget -qO- https://raw.githubusercontent.com/Scu9277/argosbx/main/argosbx.sh)"
 echo "显示节点信息命令：agsbx list 【或者】 主脚本 list"
@@ -81,10 +82,8 @@ echo "---------------------------------------------------------"
 echo
 }
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo "甬哥Github项目 ：github.com/yonggekkk"
-echo "本fork(Scu9277) ：github.com/Scu9277/argosbx  【基于甬哥ArgoSBX fork，新增自定义Socks/Http/Mixed出口代理】"
-echo "甬哥Blogger博客 ：ygkkk.blogspot.com"
-echo "甬哥YouTube频道 ：www.youtube.com/@ygkkk"
+echo "作者/Duang x Scu   邮箱/shangkouyou@gmail.com"
+echo "项目仓库 ：github.com/Scu9277/argosbx   【基于 甬哥(yonggekkk/argosbx) 改造，新增自定义Socks/Http/Mixed出口代理】"
 echo "Argosbx一键无交互小钢炮脚本💣"
 echo "当前版本：V26.7.16-Scu9277"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -2730,7 +2729,7 @@ if [ "$1" = "del" ]; then
 cleandel
 rm -rf sbx_update "$HOME/agsbx" "$HOME/websbx"
 echo "卸载完成"
-echo "欢迎继续使用甬哥侃侃侃ygkkk的Argosbx一键无交互小钢炮脚本💣" && sleep 2
+echo "欢迎继续使用 Duang x Scu 的 ArgoSBX 一键无交互小钢炮脚本💣" && sleep 2
 echo
 showmode
 exit

@@ -1,6 +1,6 @@
 ## Argosbx一键无交互小钢炮脚本💣：极简 + 轻量 + 快速
 
-> 本仓库为 **Scu9277** 基于甬哥 [yonggekkk/argosbx](https://github.com/yonggekkk/argosbx) 的 **fork**，在原版基础上**新增「自定义Socks/HTTP/Mixed出口代理」功能**。原版（未改动）请访问甬哥仓库。感谢甬哥的开源。
+> **作者 / Duang x Scu**（邮箱 `shangkouyou@gmail.com`）基于甬哥 [yonggekkk/argosbx](https://github.com/yonggekkk/argosbx) 的 **fork**，在原版基础上**新增「自定义Socks/HTTP/Mixed出口代理」功能**。原版（未改动）请访问甬哥仓库。感谢甬哥的开源。
 
 ---------------------------------------
 
@@ -171,7 +171,8 @@ agsbx cp proxy=off             # 关闭自定义代理
 
 ---------------------------------------------------------
 
-### 交流平台：[甬哥博客地址](https://ygkkk.blogspot.com)、[甬哥YouTube频道](https://www.youtube.com/@ygkkk)、[甬哥TG电报群组](https://t.me/+jZHc6-A-1QQ5ZGVl)、[甬哥TG电报频道](https://t.me/+DkC9ZZUgEFQzMTZl)
+### 交流平台 / 作者：**Duang x Scu**（邮箱 `shangkouyou@gmail.com`，仓库 `https://github.com/Scu9277/argosbx`）
+原作者甬哥：[甬哥博客](https://ygkkk.blogspot.com)、[甬哥YouTube](https://www.youtube.com/@ygkkk)、[甬哥TG群组](https://t.me/+jZHc6-A-1QQ5ZGVl)
 
 ----------------------------------------------------------
 ### 感谢支持！微信打赏甬哥侃侃侃ygkkk
