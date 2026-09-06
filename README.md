@@ -19,7 +19,7 @@
 #### 6、所有代理协议都无需域名（除了argo固定隧道、IP端口CDN），支持单个或多个代理协议任意组合并快速重置更换
 【 已支持：Naiveproxy、Vless-xhttp-tls、AnyTLS、Any-reality、Vless-xhttp-reality-vison-enc、Vless-tcp-reality-vision、Vless-xhttp-vison-enc、Vless-ws-vision-enc、Shadowsocks-2022、Vmess-ws、Socks5、Hysteria2、Tuic、Argo临时/固定隧道支持Vless-ws-vision-enc或Vmess-ws 】
 
-#### 7、建议配合SSH一键脚本命令生成器网页使用：https://yonggekkk.github.io/argosbx/
+#### 7、建议配合SSH一键脚本命令生成器网页使用：https://scu9277.github.io/argosbx/
 
 #### 8、如需要多样的功能，推荐使用VPS专用五合一脚本[Sing-box-yg](https://github.com/yonggekkk/sing-box-yg)
 
@@ -61,7 +61,7 @@
 ```bash
 # 1) 首次安装：socks 代理出口（带账号密码）
 proxy=socks://user:pass@1.2.3.4:1080 outmode=custom vlpt=443 vmp=80 \
-  bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/argosbx/main/argosbx.sh)
+  bash <(curl -Ls https://raw.githubusercontent.com/Scu9277/argosbx/main/argosbx.sh)
 
 # 2) 改用 http 代理出口
 proxy=http://1.2.3.4:8080 outmode=custom vlpt=443 agsbx rep
