@@ -1,5 +1,7 @@
 ## Argosbx一键无交互小钢炮脚本💣：极简 + 轻量 + 快速
 
+> 本仓库为 **Scu9277** 基于甬哥 [yonggekkk/argosbx](https://github.com/yonggekkk/argosbx) 的 **fork**，在原版基础上**新增「自定义Socks/HTTP/Mixed出口代理」功能**。原版（未改动）请访问甬哥仓库。感谢甬哥的开源。
+
 ---------------------------------------
 
 <img width="757" height="255" alt="d89e2542c513e705106371acc7fa1d33" src="https://github.com/user-attachments/assets/7d7a4678-4223-478c-afe2-d303ba0f85a4" />
