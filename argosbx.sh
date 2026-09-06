@@ -59,6 +59,7 @@ v46url="https://icanhazip.com"
 agsbxurl="https://raw.githubusercontent.com/Scu9277/argosbx/main/argosbx.sh"
 showmode(){
 echo "作者/Duang x Scu   邮箱/shangkouyou@gmail.com   项目/github.com/Scu9277/argosbx"
+echo "交互式快捷菜单命令：agsbx menu 【或】 无参数运行 agsbx（会弹出菜单，可修改出口代理/切模式/关代理）"
 echo "Argosbx脚本一键SSH命令生器在线网址：https://scu9277.github.io/argosbx/"
 echo "主脚本：bash <(curl -Ls https://raw.githubusercontent.com/Scu9277/argosbx/main/argosbx.sh) 或 bash <(wget -qO- https://raw.githubusercontent.com/Scu9277/argosbx/main/argosbx.sh)"
 echo "显示节点信息命令：agsbx list 【或者】 主脚本 list"
@@ -2725,6 +2726,82 @@ else
 nohup $HOME/agsbx/sing-box run -c $HOME/agsbx/sb.json >/dev/null 2>&1 &
 fi
 }
+# =============================================================
+# 交互式快捷菜单（agsbx menu / 无参数且为终端时显示）
+# =============================================================
+_menu_reapply(){
+# 以 rep 模式重跑 agsbx 快捷方式，应用当前出口/协议设置
+exec bash "${HOME}/bin/agsbx" rep
+}
+_interactive_proxy(){
+echo
+echo "---------- 设置/修改出口代理 ----------"
+if [ -s "$HOME/agsbx/cproxy.conf" ]; then
+echo "当前记录的自定义代理："
+cat "$HOME/agsbx/cproxy.conf" | sed 's/^/    /'
+else
+echo "当前未启用自定义出口代理（默认VPS本地IP直连）"
+fi
+read -p "  代理类型 [socks/http/mixed，默认 socks]: " _t
+[ -z "$_t" ] && _t="socks"
+read -p "  代理IP(必填): " _ip
+read -p "  代理端口(必填): " _pt
+read -p "  代理账号(可空): " _u
+read -p "  代理密码(可空): " _p
+if [ -z "$_ip" ] || [ -z "$_pt" ]; then
+echo "  ⚠️ IP 或端口为空，未应用。"
+return
+fi
+read -p "  是否跳过可用性验证? [y/N]: " _nc
+export proxy_type="$_t" proxy_ip="$_ip" proxy_port="$_pt" proxy_user="$_u" proxy_pass="$_p" outmode=custom
+[ "$_nc" = "y" ] || [ "$_nc" = "Y" ] && export proxy_nocheck=1
+echo "  正在应用出口代理 $_ip:$_pt（可能校验）并重建…"
+_menu_reapply
+}
+_interactive_outmode(){
+echo
+echo "---------- 切换出口模式 ----------"
+echo "  1) custom 使用自定义代理为出口（需填代理）"
+echo "  2) warp 使用WARP出口"
+echo "  3) direct 直连（VPS本地IP）"
+read -p "  请选择 [1-3] 或回车取消: " _m
+case "$_m" in
+1) _interactive_proxy ;;
+2) export outmode=warp; _menu_reapply ;;
+3) export outmode=direct; _menu_reapply ;;
+*) echo "  已取消" ;;
+esac
+}
+interactive_menu(){
+if [ ! -f "$HOME/bin/agsbx" ]; then
+echo "  未找到 agsbx 快捷方式，请先安装脚本。"
+return
+fi
+while :; do
+echo
+echo "========== ArgoSBX 快捷菜单（Duang x Scu）=========="
+echo "  1) 查看状态 / 节点信息"
+echo "  2) 设置/修改出口代理 (socks/http/mixed)"
+echo "  3) 切换出口模式 (custom/warp/direct)"
+echo "  4) 关闭自定义出口代理"
+echo "  5) 查看/记录出口设置 (cp)"
+echo "  6) 重置协议变量 (rep)"
+echo "  7) 重启内核 (res)"
+echo "  0) 退出"
+read -p "  请选择 [0-7]: " _mc || break
+case "$_mc" in
+1) cip ;;
+2) _interactive_proxy ;;
+3) _interactive_outmode ;;
+4) export proxy=off; _menu_reapply ;;
+5) exec bash "${HOME}/bin/agsbx" cp ;;
+6) _menu_reapply ;;
+7) exec bash "${HOME}/bin/agsbx" res ;;
+0|q|Q|exit|quit) break ;;
+*) echo "  无效选择，请重试" ;;
+esac
+done
+}
 if [ "$1" = "del" ]; then
 cleandel
 rm -rf sbx_update "$HOME/agsbx" "$HOME/websbx"
@@ -2790,6 +2867,9 @@ echo "  强制直连(VPS本地IP)：  outmode=direct agsbx rep  或 不做任何
 echo "  关闭自定义代理：       proxy=off      agsbx cp"
 echo "  （改/关后请执行 agsbx rep 重建生效）"
 fi
+exit
+elif [ "$1" = "menu" ]; then
+interactive_menu
 exit
 elif [ "$1" = "upx" ]; then
 for P in /proc/[0-9]*; do [ -L "$P/exe" ] || continue; TARGET=$(readlink -f "$P/exe" 2>/dev/null) || continue; case "$TARGET" in *"/agsbx/x"*) kill "$(basename "$P")" 2>/dev/null ;; esac; done
@@ -2963,6 +3043,9 @@ fi
 cip
 echo
 else
+if [ -t 0 ]; then
+interactive_menu
+else
 echo "Argosbx脚本已安装"
 echo
 argosbxstatus
@@ -2970,4 +3053,5 @@ echo
 echo "相关快捷方式如下："
 showmode
 exit
+fi
 fi
