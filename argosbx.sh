@@ -54,6 +54,7 @@ export proxy_user=${proxy_user:-''}
 export proxy_pass=${proxy_pass:-''}
 export proxy_enable=${proxy_enable:-''}
 export outmode=${outmode:-''}
+export proxy_nocheck=${proxy_nocheck:-''}
 v46url="https://icanhazip.com"
 agsbxurl="https://raw.githubusercontent.com/Scu9277/argosbx/main/argosbx.sh"
 showmode(){
@@ -74,6 +75,7 @@ echo "        warp=s 或 outmode=warp      agsbx cp   # 使用warp出口"
 echo "        outmode=direct 或不填出口变量      # 默认VPS本地IP直连"
 echo "        proxy=off                   agsbx cp   # 关闭自定义代理"
 echo "说明：默认出口=VPS本地IP直连；只有主动填代理或选warp才切换出口"
+echo "说明：启用自定义代理时，脚本会先验证该代理能否从本机连通上网(显示代理出口IP)，不可用则提示并中止；如要强制忽略验证，加 proxy_nocheck=1"
 echo "申请本地IP域名证书脚本：bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/acme-yg/main/acme.sh)"
 echo "---------------------------------------------------------"
 echo
@@ -258,6 +260,37 @@ xip='"::/0", "0.0.0.0/0"'; sip='"::/0", "0.0.0.0/0"'
 echo; echo "=========启用自定义出口代理========="
 echo "出口类型：$cotype    出口代理：${copaddr}:${copport}"
 [ -n "$copuser" ] && echo "代理账号：$copuser"
+# === 出口代理可用性验证：能用才配置，不可用则提示并中止 ===
+if [ "${proxy_nocheck:-}" = "1" ]; then
+echo "(已跳过出口代理可用性验证：proxy_nocheck=1)"
+else
+local px_scheme="socks5"
+case "$cotype" in http) px_scheme=http;; esac
+local px_auth=""
+[ -n "$copuser" ] && px_auth="${copuser}:${coppass}@"
+local px="${px_scheme}://${px_auth}${copaddr}:${copport}"
+local _exitip="" _pxok=""
+if command -v curl >/dev/null 2>&1; then
+_exitip=$(curl -x "$px" -m 8 -s "$v46url" 2>/dev/null)
+if [ -n "$_exitip" ]; then _pxok=yes; fi
+if [ -z "$_pxok" ]; then
+local _code=$(curl -x "$px" -m 8 -s -o /dev/null -w '%{http_code}' https://www.gstatic.com/generate_204 2>/dev/null)
+case "$_code" in 2*|3*) _pxok=yes;; esac
+fi
+elif command -v wget >/dev/null 2>&1; then
+_exitip=$(timeout 8 wget -qO- --no-check-certificate -e use_proxy=yes -e "http_proxy=$px" -e "https_proxy=$px" "$v46url" 2>/dev/null)
+[ -n "$_exitip" ] && _pxok=yes
+fi
+if [ "$_pxok" != "yes" ]; then
+echo ""
+echo "❌ 出口代理 ${copaddr}:${copport} 验证失败：当前主机无法通过该代理访问网络！"
+echo "   请检查：① 代理地址/端口是否正确；② 代理账号密码是否正确；③ VPS 能否连到该代理；④ 该代理自身是否能上网。"
+echo "   已中止出口代理配置（不会写入配置）。如需忽略验证强行配置，请加 proxy_nocheck=1 重试。"
+exit 1
+else
+if [ -n "$_exitip" ]; then echo "✔ 出口代理可用性验证通过，代理出口IP：$_exitip"; else echo "✔ 出口代理可用性验证通过（可正常联网）"; fi
+fi
+fi
 elif [ "$now_direct" = yes ]; then
 s1outtag=direct; s2outtag=direct; x1outtag=direct; x2outtag=direct
 xip='"::/0", "0.0.0.0/0"'; sip='"::/0", "0.0.0.0/0"'

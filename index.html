@@ -548,6 +548,11 @@
               <button id="toggleProxyPass" type="button" class="ghost">显示</button>
             </div>
           </div>
+          <div style="margin:8px 0 0; font-size:13px; color:var(--sub);">
+            <label style="display:inline-flex; gap:6px; align-items:center; cursor:pointer;">
+              <input type="checkbox" id="proxy_nocheck" style="width:auto;"> 跳过代理可用性验证（proxy_nocheck=1，代理本身可达但测试偶发失败时勾选）
+            </label>
+          </div>
         </div>
       </section>
 
@@ -885,6 +890,11 @@ Acme-yg域名IP证书脚本：bash <(curl -Ls https://raw.githubusercontent.com/
       if (!agn.disabled && _agn) m['agn'] = _agn;
       if (!agk.disabled && _agk) m['agk'] = _agk;
     }
+    // proxy_nocheck: 仅在选择 custom 且勾选时输出 proxy_nocheck=1
+    const nchk = document.getElementById('proxy_nocheck');
+    if (nchk && nchk.checked && document.getElementById('outmode').value === 'custom') {
+      m['proxy_nocheck'] = '1';
+    }
     return m;
   }
 
@@ -892,7 +902,7 @@ Acme-yg域名IP证书脚本：bash <(curl -Ls https://raw.githubusercontent.com/
     const keys = Object.keys(m);
     const ordered = [];
     protoKeys.forEach(k => { if (keys.includes(k)) ordered.push(k); });
-    ['warp', 'outmode', 'proxy', 'proxy_type', 'proxy_ip', 'proxy_port', 'proxy_user', 'proxy_pass', 'uuid', 'reym', 'cfip', 'alns', 'hyjpt', 'cdnym', 'name', 'ippz', 'sub', 'subid', 'subpt'].forEach(k => { if (keys.includes(k)) ordered.push(k); });
+    ['warp', 'outmode', 'proxy', 'proxy_type', 'proxy_ip', 'proxy_port', 'proxy_user', 'proxy_pass', 'proxy_nocheck', 'uuid', 'reym', 'cfip', 'alns', 'hyjpt', 'cdnym', 'name', 'ippz', 'sub', 'subid', 'subpt'].forEach(k => { if (keys.includes(k)) ordered.push(k); });
     if (keys.includes('argo')) ordered.push('argo');
     if (keys.includes('agn')) ordered.push('agn');
     if (keys.includes('agk')) ordered.push('agk');
@@ -997,6 +1007,9 @@ Acme-yg域名IP证书脚本：bash <(curl -Ls https://raw.githubusercontent.com/
         }
       }
     });
+    // proxy_nocheck 复选框
+    const nckEl = document.getElementById('proxy_nocheck');
+    if (nckEl) nckEl.checked = (params['proxy_nocheck'] === '1');
 
     isUpdatingFromOutput = false;
     updateProxyFields();
